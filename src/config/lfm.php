@@ -138,6 +138,10 @@ return [
 
     'thumb_img_height'         => 200, // px
 
+    'thumb_category_img_width' => 60,  // px
+
+    'thumb_category_img_height' => 60, // px
+
     /*
     |--------------------------------------------------------------------------
     | File Extension Information
