@@ -4,7 +4,6 @@ namespace UniSharp\LaravelFilemanager;
 
 use Illuminate\Container\Container;
 use Intervention\Image\Facades\Image;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use UniSharp\LaravelFilemanager\Events\FileIsUploading;
 use UniSharp\LaravelFilemanager\Events\FileWasUploaded;
 use UniSharp\LaravelFilemanager\Events\ImageIsUploading;
@@ -71,8 +70,8 @@ class LfmPath
             // storage: files/{user_slug}
             // storage without folder: {user_slug}
             return $this->helper->getCategoryName() === '.'
-                ? ltrim($this->path('working_dir'), '/')
-                : $this->helper->getCategoryName() . $this->path('working_dir');
+            ? ltrim($this->path('working_dir'), '/')
+            : $this->helper->getCategoryName() . $this->path('working_dir');
         } elseif ($type == 'storage') {
             // storage: files/{user_slug}
             // storage on windows: files\{user_slug}
@@ -112,10 +111,10 @@ class LfmPath
         $files = array_map(function ($file_path) {
             return $this->pretty($file_path);
         }, $this->storage->files());
-        
+
         //filter out webp files
-        foreach($files as $key => $file){
-            if(substr($file->name, -5, 5) === '.webp'){
+        foreach ($files as $key => $file) {
+            if (substr($file->name, -5, 5) === '.webp') {
                 unset($files[$key]);
             }
         }
@@ -128,7 +127,7 @@ class LfmPath
         return Container::getInstance()->makeWith(LfmItem::class, [
             'lfm' => (clone $this)->setName($this->helper->getNameFromPath($item_path)),
             'helper' => $this->helper,
-            'isDirectory' => $isDirectory
+            'isDirectory' => $isDirectory,
         ]);
     }
 
@@ -182,8 +181,8 @@ class LfmPath
     public function normalizeWorkingDir()
     {
         $path = $this->working_dir
-            ?: $this->helper->input('working_dir')
-            ?: $this->helper->getRootFolder();
+        ?: $this->helper->input('working_dir')
+        ?: $this->helper->getRootFolder();
 
         if ($this->is_thumb) {
             // Prevent if working dir is "/" normalizeWorkingDir will add double "//" that breaks S3 functionality
@@ -235,14 +234,14 @@ class LfmPath
         event(new ImageIsUploading($new_file_path));
         try {
             $this->setName($new_file_name)->storage->save($file);
-            
+
             //create webp
-            if(substr($file->getMimeType(), 0, 5) === 'image'){
+            if (substr($file->getMimeType(), 0, 5) === 'image') {
                 $new_file_name_webp = strtr($new_file_name, ['.jpg' => '.webp', '.png' => '.webp', '.gif' => '.webp', '.jpeg' => '.webp']);
                 $image = Image::make($file);
                 $this->setName($new_file_name_webp)->storage->put($image->encode('webp'));
             }
-            
+
             $this->generateThumbnail($new_file_name);
         } catch (\Exception $e) {
             \Log::info($e);
@@ -303,11 +302,11 @@ class LfmPath
             $file_name_without_extentions = $new_file_name;
             while ($this->setName(($extension) ? $new_file_name_with_extention : $new_file_name)->exists()) {
                 if (config('lfm.alphanumeric_filename') === true) {
-                    $suffix = '_'.$counter;
+                    $suffix = '_' . $counter;
                 } else {
                     $suffix = " ({$counter})";
                 }
-                $new_file_name = $file_name_without_extentions.$suffix;
+                $new_file_name = $file_name_without_extentions . $suffix;
 
                 if ($extension) {
                     $new_file_name_with_extention = $new_file_name . '.' . $extension;
@@ -337,13 +336,34 @@ class LfmPath
         //original file type thumbnail
         $image = Image::make($original_image->get())
             ->fit($thumbWidth, $thumbHeight, function ($constraint) {
-            $constraint->upsize();
-        });
+                $constraint->upsize();
+            });
         $this->storage->put($image->stream()->detach(), 'public');
-        
-        //webo thumbnail
-        $file_name = strtr($file_name, ['.jpg' => '.webp', '.png' => '.webp', '.gif' => '.webp', '.jpeg' => '.webp']);
-        $this->setName($file_name)->thumb(true);
+
+        //webp thumbnail
+        $file_name_webp = strtr($file_name, ['.jpg' => '.webp', '.png' => '.webp', '.gif' => '.webp', '.jpeg' => '.webp']);
+        $this->setName($file_name_webp)->thumb(true);
         $this->storage->put($image->encode('webp'), 'public');
+
+        //create category thumb
+
+        $file_name = explode('.', $file_name);
+        $file_name = $file_name[0].'_category.'.$file_name[1];
+        $this->setName($file_name)->thumb(true);
+
+        $thumbCategoryWidth = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbWidth() ? $this->helper->categoryThumbWidth() : config('lfm.thumb_category_img_width', 60);
+        $thumbCategoryHeight = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbHeight() ? $this->helper->categoryThumbHeight() : config('lfm.thumb_category_img_height', 60);
+
+        $image = Image::make($original_image->get())
+            ->fit($thumbCategoryWidth, $thumbCategoryHeight, function ($constraint) {
+                $constraint->upsize();
+            });
+        $this->storage->put($image->stream()->detach(), 'public');
+
+        //webp thumbnail
+        $file_name_webp = strtr($file_name, ['.jpg' => '.webp', '.png' => '.webp', '.gif' => '.webp', '.jpeg' => '.webp']);
+        $this->setName($file_name_webp)->thumb(true);
+        $this->storage->put($image->encode('webp'), 'public');
+
     }
 }
