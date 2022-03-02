@@ -347,9 +347,9 @@ class LfmPath
 
         //create category thumb
 
-        $file_name = explode('.', $file_name);
-        $file_name = $file_name[0].'_category.'.$file_name[1];
-        $this->setName($file_name)->thumb(true);
+        $file_name_category = explode('.', $file_name);
+        $file_name_category = $file_name_category[0] . '_category.' . $file_name_category[1];
+        $this->setName($file_name_category)->thumb(true);
 
         $thumbCategoryWidth = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbWidth() ? $this->helper->categoryThumbWidth() : config('lfm.thumb_category_img_width', 60);
         $thumbCategoryHeight = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbHeight() ? $this->helper->categoryThumbHeight() : config('lfm.thumb_category_img_height', 60);
@@ -361,7 +361,29 @@ class LfmPath
         $this->storage->put($image->stream()->detach(), 'public');
 
         //webp thumbnail
-        $file_name_webp = strtr($file_name, ['.jpg' => '.webp', '.png' => '.webp', '.gif' => '.webp', '.jpeg' => '.webp']);
+        $file_name_webp = strtr($file_name_category, ['.jpg' => '.webp', '.png' => '.webp', '.gif' => '.webp', '.jpeg' => '.webp']);
+        $this->setName($file_name_webp)->thumb(true);
+        $this->storage->put($image->encode('webp'), 'public');
+
+
+
+        //create homepage category thumb
+
+        $file_name_homepage_category = explode('.', $file_name);
+        $file_name_homepage_category = $file_name_homepage_category[0] . '_100x100.' . $file_name_homepage_category[1];
+        $this->setName($file_name_homepage_category)->thumb(true);
+
+        $thumbCategoryWidth = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbWidth() ? $this->helper->categoryThumbWidth() : config('lfm.thumb_category_homepage_img_width', 100);
+        $thumbCategoryHeight = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbHeight() ? $this->helper->categoryThumbHeight() : config('lfm.thumb_category_homepage_img_height', 100);
+
+        $image = Image::make($original_image->get())
+            ->fit($thumbCategoryWidth, $thumbCategoryHeight, function ($constraint) {
+                $constraint->upsize();
+            });
+        $this->storage->put($image->stream()->detach(), 'public');
+
+        //webp thumbnail
+        $file_name_webp = strtr($file_name_homepage_category, ['.jpg' => '.webp', '.png' => '.webp', '.gif' => '.webp', '.jpeg' => '.webp']);
         $this->setName($file_name_webp)->thumb(true);
         $this->storage->put($image->encode('webp'), 'public');
 
