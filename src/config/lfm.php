@@ -142,6 +142,10 @@ return [
 
     'thumb_category_img_height' => 60, // px
 
+    'thumb_category_homepage_img_width' => 100,
+
+    'thumb_category_homepage_img_height' => 100,
+
     /*
     |--------------------------------------------------------------------------
     | File Extension Information
