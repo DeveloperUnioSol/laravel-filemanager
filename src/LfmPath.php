@@ -335,7 +335,8 @@ class LfmPath
         $thumbHeight = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbHeight() ? $this->helper->categoryThumbHeight() : config('lfm.thumb_img_height', 200);
         //original file type thumbnail
         $image = Image::make($original_image->get())
-            ->fit($thumbWidth, $thumbHeight, function ($constraint) {
+            ->resize($thumbWidth, $thumbHeight, function ($constraint) {
+                $constraint->aspectRatio();
                 $constraint->upsize();
             });
         $this->storage->put($image->stream()->detach(), 'public');
@@ -355,7 +356,8 @@ class LfmPath
         $thumbCategoryHeight = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbHeight() ? $this->helper->categoryThumbHeight() : config('lfm.thumb_category_img_height', 60);
 
         $image = Image::make($original_image->get())
-            ->fit($thumbCategoryWidth, $thumbCategoryHeight, function ($constraint) {
+            ->resize($thumbCategoryWidth, $thumbCategoryHeight, function ($constraint) {
+                $constraint->aspectRatio();
                 $constraint->upsize();
             });
         $this->storage->put($image->stream()->detach(), 'public');
@@ -377,7 +379,8 @@ class LfmPath
         $thumbCategoryHeight = $this->helper->shouldCreateCategoryThumb() && $this->helper->categoryThumbHeight() ? $this->helper->categoryThumbHeight() : config('lfm.thumb_category_homepage_img_height', 100);
 
         $image = Image::make($original_image->get())
-            ->fit($thumbCategoryWidth, $thumbCategoryHeight, function ($constraint) {
+            ->resize($thumbCategoryWidth, $thumbCategoryHeight, function ($constraint) {
+                $constraint->aspectRatio();
                 $constraint->upsize();
             });
         $this->storage->put($image->stream()->detach(), 'public');
